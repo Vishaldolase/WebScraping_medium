@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Medium Web Scrapper{% endblock %}</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/357/357556.png"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> -->
+    <!-- <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous"> -->
+    <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script> -->
+    <script type="text/javascript" src="{% static 'twitter_bootstrap/js/transition.js' %}"></script>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+    <!-- <link rel="stylesheet" type="text/css" href="{% static 'medium/style.css' %}"/> -->
+    <script type="text/javascript">
+        window.CSRF_TOKEN = "{{ csrf_token }}"
+    </script>
+</head>
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="col-md-6 offset-md-3 text-center">
+
+            <!-- Header -->
+            
+            <a class="navbar-brand" href="{% url 'medium:index' %}">Start Scraping</a>
+
+        </div>
+    </nav><br><br><br>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <button type="button" class="btn btn-dark" onclick="show_history()">Your Search History</button>
+            </div>
+            <div class="col-md-6">
+                <form id="form-search" class="form-inline" role="search" action="" style="float: right;">
+                    <div class="form-group text-center">
+                        <input type="text" class="form-control" name="tag" value="" placeholder="Enter Tag To Search Articles" required>
+                    </div>
+                    <button type="submit" class="btn btn-dark">Search
+                    </button>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+    <br>
+    <div class="container" id="history-tags"></div>
+    <div class="container text-center" id="message"></div>
+    <div class="container" id="tags"></div>
+    <div class="container" id="blogs"></div>
+    <br>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 text-center" style="float: left;"><a id="load-prev" class="btn btn-info m-1" type="button" href="javascript:void(0);" data-page="0" style="display: none">Previous</a></div>
+            <div id="page-status" class="col-md-4 text-center"></div>
+            <div class="col-md-4 text-center" style="float: right;"><a id="load-next" class="btn btn-info m-1" type="button" href="javascript:void(0);" data-page="1" style="display: none">Load More</a></div>
+        </div>
+    </div>
+    <br>
+    {% block body %}
+    {% endblock %}
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags %}  <script>alert("{{ message }}")</script> {% endif %}
+
+    {% endfor %}
+
+{% endif %}
+</body>
+</html>
+
+<script>
+    // Showing user his Search History
+    function show_history(){
+        $( document.body ).css( 'pointer-events', 'none');
+
+        $.ajax({
+            type: 'GET',
+            url: '/show_history/',
+        
+            success: function(data){
+                $(window).scrollTop(0);
+                $('#history-tags').html(data.history_tags);
+                $( document.body ).css( 'pointer-events', 'auto');
+            },
+            error: function(xhr, status, error){
+                console.log('Some error occured');
+                $( document.body ).css( 'pointer-events', 'auto');
+            }
+        });
+    }
+
+
+
+    // function to search and fetch all the data via ajax call and places it in proper div tag
+    // and trigger the crawl function
+    $(document).ready(function() {
+        $('#form-search').submit(function(event) {
+            // adding searching tag and disabiling clicks
+            $('#history-tags').html("");
+            var tag = $('input[name=tag]').val();
+            var next = $('#load-next');
+            var prev = $('#load-prev');
+            var page = 1;
+            console.log(tag);
+
+            $('#message').html("Searching ...Please wait....");
+            $( document.body ).css( 'pointer-events', 'none');
+            $( document.body ).css( 'opacity', '1');
+            $.ajax({
+                type: 'GET',
+                url: '/search/',
+                data: {
+                    'tag': tag,
+                },
+                success: function(data){
+                    console.log('success');
+                    $(window).scrollTop(0);
+                    $('#message').html("");
+                    $('#tags').html(data.tags);
+                    $('#blogs').html(data.blogs);
+
+                    
+
+                    // show or hide the next button
+                    if (data.has_next) {
+                        next.data('page', page+1);
+                        next.data('tag', data.tag);
+                        next.show();
+                    }
+                    else {
+                        next.hide();
+                    }
+                    // show wor hide the prev button
+                    if (data.has_previous) {
+                        prev.data('page', page-1);
+                        prev.data('tag', data.tag);
+                        prev.show();
+                    }
+                    else {
+                        prev.hide();
+                    }
+                    $( document.body ).css( 'pointer-events', 'auto');
+
+                    var status_btn =  $('#0').find('#status');
+                    status_btn.html("Article Crawling");
+                    status_btn.removeClass('progress-bar-danger').addClass('progress-bar-warning');
+                    //calling crawl function to crawl 0th indexed blog 
+                    setTimeout(() => {
+                        crawl(0);
+                    }, 0)
+                },
+                error: function(xhr, status, error){
+                    console.log('error occured');
+                    $( document.body ).css( 'pointer-events', 'auto');
+                }
+            });
+            event.preventDefault();
+        })
+    });
+
+    //function to search other blogs based on related tags via ajax call
+    function related_tag_blogs(tag) {
+
+        $('#history-tags').html("");
+            console.log(tag);
+            var next = $('#load-next');
+            var prev = $('#load-prev');
+            var page = 1;
+            // adding searching tag and disabiling clicks
+            $('#message').html("Searching, please wait ...");
+            $( document.body ).css( 'pointer-events', 'none');
+            $.ajax({
+                type: 'GET',
+                url: '/search/',
+                data: {
+                    'tag': tag,
+                },
+                success: function(data) {
+                    console.log(" Blogs found successfully success");
+                    $(window).scrollTop(0);
+                    $('#message').html("");
+                    $('#tags').html(data.tags);
+                    $('#blogs').html(data.blogs);
+
+                    // show or hide the next button
+                    if (data.has_next) {
+                        next.data('page', page+1);
+                        next.data('tag', data.tag);
+                        next.show();
+                    }
+                    else {
+                        next.hide();
+                    }
+
+                    // show wor hide the prev button
+                    if (data.has_prev) {
+                        prev.data('page', page-1);
+                        prev.data('tag', data.tag);
+                        prev.show();
+                    }
+                    else {
+                        prev.hide();
+                    }
+                    
+                    $( document.body ).css( 'pointer-events', 'auto');
+                    var status_btn =  $('#0').find('#status');
+                    status_btn.html("Article Crawling");
+                    status_btn.removeClass('progress-bar-danger').addClass('progress-bar-warning');
+                    
+                    setTimeout(() => {
+                        crawl(0);
+                    }, 0)
+                }, 
+                error: function(xhr, status, error){
+                    console.log('error occured');
+                    $( document.body ).css( 'pointer-events', 'auto');
+                }
+            });
+
+        };
+
+    (function($) {
+        $('#load-next').on('click', function(){
+            var next = $(this);
+            var prev = $('#load-prev');
+            var page = next.data('page');
+            var tag = next.data('tag');
+            console.log("loading next page", page);
+
+            // adding next page message and disabling clicks
+            $('#page-status').html("Loading...");
+            $( document.body ).css( 'pointer-events', 'none');
+            $.ajax({
+                type: 'post',
+                url: '/other_page/',
+                data: {
+                    'page': page,
+                    'tag': tag,
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success: function(data) {
+                    $(window).scrollTop(0);
+                    $('#page-status').html("");
+                    $('#blogs').html(data.blogs)
+
+                    if (data.has_next) {
+                        next.data('page', page+1);
+                        next.data('tag', data.tag);
+                        next.show();
+                    }
+                    else {
+                        next.hide();
+                    }
+                    
+                    if (data.has_prev) {
+                        console.log('yaha aaya');
+                        prev.data('page', page-1);
+                        prev.data('tag', data.tag);
+                        prev.show();
+                    }
+                    else {
+                        prev.hide();
+                    }
+                    console.log('next changed to', next.data('page'));
+                    console.log('prev changed to', prev.data('page'));
+                    $( document.body ).css( 'pointer-events', 'auto');
+                    var status_btn =  $('#0').find('#status');
+                    status_btn.html("Article Crawling");
+                    status_btn.removeClass('progress-bar-danger').addClass('progress-bar-warning');
+                    setTimeout(() => {
+                        crawl(0);
+                    }, 0)
+                },
+                error: function(xhr, status, error) {
+                    console.log('error occured');
+                    $( document.body ).css( 'pointer-events', 'auto');
+                }
+
+            });
+        });
+    }(jQuery));
+
+
+    (function($) {
+        $('#load-prev').on('click', function(){
+            var prev = $(this);
+            var next = $('#load-next');
+            var page = prev.data('page');
+            var tag = prev.data('tag');
+            console.log("loading previous page", page);
+
+            // adding next page message and disabling clicks
+            $('#page-status').html("Loading...");
+            $( document.body ).css( 'pointer-events', 'none');
+            $.ajax({
+                type: 'post',
+                url: '/other_page/',
+                data: {
+                    'page': page,
+                    'tag': tag,
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success: function(data) {
+                    $(window).scrollTop(0);
+                    $('#page-status').html("");
+                    $('#blogs').html(data.blogs)
+
+                    if (data.has_next) {
+                        next.data('page', page+1);
+                        next.data('tag', data.tag);
+                        next.show();
+                    }
+                    else {
+                        next.hide();
+                    }
+                    
+                    if (data.has_prev) {
+                        prev.data('page', page-1);
+                        prev.data('tag', data.tag);
+                        prev.show();
+                    }
+                    else {
+                        prev.hide();
+                    }
+                    console.log('next changed to', next.data('page'));
+                    console.log('prev changed to', prev.data('page'));
+                    $( document.body ).css( 'pointer-events', 'auto');
+                    var status_btn =  $('#0').find('#status');
+                    status_btn.html("Article Crawling");
+                    status_btn.removeClass('progress-bar-danger').addClass('progress-bar-warning');
+                    setTimeout(() => {
+                        crawl(0);
+                    }, 0)
+                },
+                error: function(xhr, status, error) {
+                    console.log('error occured');
+                    $( document.body ).css( 'pointer-events', 'auto');
+                }
+
+            });
+        });
+    }(jQuery));
+
+    // toggle function for hiding and showing description using button
+    function show_details(id, button) {
+        var id_string = "#" + id.toString();
+        $(id_string).find(".card-text").toggleClass("d-none");
+    }
+
+    // crawling function which will crawl one by one every blog on the current page
+    function crawl(id) {
+        if (id > 9){
+            return;
+        }
+        let id_string = "#" + id.toString();
+        console.log(id_string);
+
+        var div = $(id_string);
+        var medium = div.find('#url');
+        // console.log("Medium variable",div.find('#url'))
+        // console.log("The URL is:  ",medium.attr('href'));
+        $.ajax({
+            type: 'GET',
+            url: '/crawl_details/',
+            data: {
+                'link': medium.attr('href'),
+            },
+            success: function(data) {
+                div.find('.card-text').html(data.detail);
+                var status_btn = div.find('#status');
+                status_btn.html("Article Crawled");
+                status_btn.removeClass('progress-bar-warning').addClass('progress-bar-success');
+                id = id + 1;
+                id_string = "#" + id.toString();
+                $(id_string).find('#status').html("Article Crawling");
+                $(id_string).find('#status').removeClass('progress-bar-danger').addClass('progress-bar-warning');
+                setTimeout (() => {
+                    crawl(id);
+                }, 0)
+            }
+        });
+    };
+
+    
+
+</script>

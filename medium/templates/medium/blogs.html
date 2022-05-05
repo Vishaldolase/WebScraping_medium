@@ -1,0 +1,19 @@
+{% if error %}
+    <h3>{{ error }}</h3>
+{% else %}
+    {% for blog in blogs %}
+        <div id="{{ forloop.counter0 }}" class="card m-5 table-bordered">
+            <div class="card-body m-5">
+                <h3 class="card-title d-inline">{{ blog.title }}</h3>
+                <h5 class="card-subtitle mb-2 text-muted" style="font-size: 20px;">{{ blog.writer }}</h5><br>
+                
+                <div class="card-text d-none">Crawling, please wait!</div>
+                <br>
+                <a class="btn btn-primary btn-sm" id="url" role="button"  href="{{ blog.link }}" target="_blank">See on Medium</a>
+                
+                <span class="badge progress-bar-danger float-right" id="status">Pending</span>
+                <br><br>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}

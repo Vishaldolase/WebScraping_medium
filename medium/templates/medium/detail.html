@@ -1,0 +1,23 @@
+<div>
+    <h4>    Author: {{ author }}    </h4>
+</div>
+<br>
+<div>{{ date }} &nbsp;|&nbsp; {{ time }}</div>
+<br>
+<h5>Related tags:
+{% for tag in related_tags %}    
+        <button class="btn btn-light btn-sm s-1 tag" type="button" onclick="related_tag_blogs('{{ tag }}')">{{ tag }}</button>
+{% endfor %}
+</h5>
+<div>
+    <h5>Respones: </h5>{{ num_responses }}
+</div>
+<br>
+{% for comment in comments_list %}
+    <div>By : {{ comment.responder }}</div>
+    <div>Comment : {{ comment.comment }}</div>
+    <br>
+{% endfor %}
+
+<div>Time taken to fetch {{ burst_time }} seconds</div>
+<br>

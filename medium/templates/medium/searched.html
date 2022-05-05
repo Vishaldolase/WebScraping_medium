@@ -1,0 +1,59 @@
+{% extends 'medium/base.html' %}
+{% block title %}Search{% endblock %}
+
+{% block body %}
+
+<div class="container">
+    {% if none %}
+    <br><br>
+    <h3 class="text-center"><b>ERROR</b></h3>
+    <h4 class="text-center"><b>{{ none }}</b></h4>
+    {% else %}
+    <br><br>
+    <div class="col-sm-6 col-sm-offset-3">
+        <div class="panel panel-default">
+            <div class="text-center">
+                <h3>Related Tags</h3>
+            </div>
+            {% for tag in rel_tags %}
+                <a href={{ tag.tag_link }}>
+                    <span class="label label-default">{{ tag.tag}}</span>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    <br><br>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel panel-default">
+                <table class="table table-bordered table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th class="text-center" style="width: 70%">Blogs</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    <!-- for loop for tweets goes here -->
+                        {% for blog in blogs_list %}
+                        <tr>
+                            <td>
+                                <a href={{ blog.link }}><h3>{{ blog.title }}</h3></a></br>
+                                <h4>{{ blog.writer }}</h5>
+                                <h6>{{ blog.date }}</h6>
+                            </td>
+                            <td>
+                                status
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
