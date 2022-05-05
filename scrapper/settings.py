@@ -27,6 +27,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1','scrapper.herokuapp.com']
 
+# AllOWED_HOSTS = []
 
 # Application definition
 
